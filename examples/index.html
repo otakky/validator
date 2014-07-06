@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<style>
+  #sample .must {
+    color: #ff3333;
+  }
+
+  #sample .attention {
+    background-color: #ffff99
+  }
+
+  #sample .error {
+    background-color: #ff9966
+  }
+
+  table {
+    border-spacing: 0;
+  }
+  table th {
+    padding: 5px 20px;
+    border: 1px solid #333333;
+    background-color: #e9e98f;
+  }
+  table td {
+    padding: 5px 10px;
+    border: 1px solid #333333;
+  }
+
+  dl dt {
+    clear: left;
+    float: left;
+  }
+
+  dl dd {
+    margin-left: 4.5em;
+  }
+</style>
+
+<h1>validator sample</h1>
+
+<div id="sample">
+  <table>
+    <tbody>
+      <tr>
+        <th> <span class="must"> * </span> Name </th>
+        <td>
+          First Name: <input type="text">
+          Family Name: <input type="text">
+        </td>
+      </tr>
+      <tr>
+        <th> <span class="must"> * </span> Age </th>
+        <td>
+          <input type="text" size="10" data-valid-type="isNumber">
+        </td>
+      </tr>
+      <tr>
+        <th>  <span class="must"> * </span> contact </th>
+        <td>
+          <dl>
+            <dt> e-mail </dt>
+            <dd> <input type="text" size="80" data-valid-type="isEmail" data-valid-group="contact"> </dd>
+          </dl>
+          <dl>
+            <dt> tel </dt>
+            <dd>
+              <input type="text" size="80" data-valid-type="isTel" data-valid-group="contact">
+            </dd>
+          </dl>
+        </td>
+      </tr>
+      <tr>
+        <th>  FAX </th>
+        <td>
+          <input class="valid-ignore" type="text" size="80" data-valid-type="isTel">
+        </td>
+      </tr>
+      <tr>
+        <th>  <span class="must"> * </span> status </th>
+        <td class="wrap">
+          <label for="foo"> <input data-valid-group="status" type="checkbox" id="foo"> foo </label>
+          <label for="bar"> <input data-valid-group="status" type="checkbox" id="bar"> bar </label>
+          <label for="foobar"> <input data-valid-group="status" type="checkbox" id="foobar"> foobar </label>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button type="submit" class="submitBtn">submit
+</div>
+
+<script src="../bower_components/jquery/jquery.js"></script>
+<script src="../dist/validator.js"></script>
+<script src="./app.js"></script>

@@ -1,0 +1,25 @@
+{
+  "name": "validator",
+  "version": "0.0.1",
+  "authors": [
+    "otakky <k.takigawa0331@gmail.com>"
+  ],
+  "description": "a library for validation of HTML input forms.",
+  "keywords": [
+    "validator",
+    "assist",
+    "validate"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "1.6.1"
+  }
+}

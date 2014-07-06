@@ -1,0 +1,17 @@
+{
+  "name": "validator",
+  "version": "0.0.1",
+  "description": "a library for validation of HTML input forms.",
+  "main": "dist/mother.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "validator",
+    "validate",
+    "assist"
+  ],
+  "author": "otakky",
+  "license": "MIT"
+}
