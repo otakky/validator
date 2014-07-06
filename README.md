@@ -9,8 +9,6 @@ this is depended on [jQuery](http://jquery.com/).
 var validator = new Validator("#sample");
 
 validator.on("init", function (target) {
-  target.addClass("attention");
-
   $(".submitBtn").attr("disabled", "disabled");
 };
 
