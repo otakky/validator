@@ -100,22 +100,25 @@
         this.checkAllTargets();
         this.observeAllTargets();
         this.emitInitialize();
-        this.bindAllListeners();
+
+        this.bindMethods();
     }
 
     // alias to Builder.prototype
     builderProto = Builder.prototype;
 
-
-    /**
-     * bint events to listeners
-     */
-    builderProto.bindAllListeners = function () {
-        this.validator.on("allcheck", $.proxy(this, "checkAllTargets"));
+    builderProto.bindMethods = function () {
+        this.validator.allcheck = $.proxy(this, "checkAllTargets");
+        this.validator.start = $.proxy(this, "observeAllTargets");
+        this.validator.stop = $.proxy(this, "stopToObserve");
     };
 
     builderProto.observeAllTargets = function () {
-        setInterval($.proxy(this, "checkAllTargets"), 300);
+        this.intervalId = setInterval($.proxy(this, "checkAllTargets"), 300);
+    };
+
+    builderProto.stopToObserve = function () {
+        clearInterval(this.intervalId);
     };
 
     builderProto.checkAllTargets = function () {
