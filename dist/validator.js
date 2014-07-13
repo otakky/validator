@@ -3,7 +3,7 @@
  * (c) 2014 otakky
  * License: MIT
  */
-;(function (global, doc, $) {
+(function (global, doc, $) {
     var validatorProto,
         builderProto,
         validMethods = {},
@@ -11,7 +11,10 @@
     ;
 
     /**
-     * validMethods
+     * check value of elem is input.
+     *
+     * @param {jQueryElement} elem target of validation
+     * @returns {Boolean} valid / invalid
      */
     validMethods.isInput = function (elem) {
         var value = elem.val();
@@ -23,6 +26,12 @@
         return !!value;
     };
 
+    /**
+     * check value of elem is Number.
+     *
+     * @param {jQueryElement} elem target of validation
+     * @returns {Boolean} valid / invalid
+     */
     validMethods.isNumber = function (elem) {
         var value = elem.val();
 
@@ -32,6 +41,13 @@
         return !isNaN(+value);
     };
 
+    /**
+     * check value of elem matching to pattern.
+     *
+     * @param {jQueryElement} elem target of validation
+     * @param {String} pattern regexp pattern
+     * @returns {Boolean} elem is valid / invalid
+     */
     validMethods.isRegExp = function (elem, pattern) {
         var value = elem.val();
 
@@ -43,12 +59,24 @@
 
     };
 
+    /**
+     * check value of elem matching to e-mail format.
+     *
+     * @param {jQueryElement} elem target of validation
+     * @returns {Boolean} valid / invalid
+     */
     validMethods.isEmail = function (elem) {
         var value = elem.val();
 
         return !!emailMatcher.test(value);
     };
 
+    /**
+     * check to input at least one in elements of group.
+     *
+     * @param {jQueryElement} group targets of validation
+     * @returns {Boolean} valid / invalid
+     */
     validMethods.anyone = function (group) {
         var inputItem = [];
 
@@ -93,6 +121,7 @@
         var inputsElem, root = validator.root;
 
         this.validator = validator;
+        this.validator.invalidNum = 0;
 
         this.allTargets = root.find(":input").not(":submit");
         this.groupTargets = this.allTargets.filter("[data-valid-group]");
@@ -107,20 +136,32 @@
     // alias to Builder.prototype
     builderProto = Builder.prototype;
 
+    /**
+     * bind methods to validator object.
+     */
     builderProto.bindMethods = function () {
         this.validator.allcheck = $.proxy(this, "checkAllTargets");
         this.validator.start = $.proxy(this, "observeAllTargets");
         this.validator.stop = $.proxy(this, "stopToObserve");
     };
 
+    /**
+     * observe elements per 300ms for validation.
+     */
     builderProto.observeAllTargets = function () {
         this.intervalId = setInterval($.proxy(this, "checkAllTargets"), 300);
     };
 
+    /**
+     * stop to observe.
+     */
     builderProto.stopToObserve = function () {
         clearInterval(this.intervalId);
     };
 
+    /**
+     * validate all validation targets, and emit these status.
+     */
     builderProto.checkAllTargets = function () {
         var that = this;
 
@@ -131,9 +172,14 @@
         });
 
 
-        this.emitCurrentStatus();
+        this.emitOverallStatus();
     };
 
+    /**
+     * validate target(s).
+     *
+     * @param {jQueryElement} target
+     */
     builderProto.validate = function (target) {
         var groupName = target.data("validGroup");
 
@@ -145,6 +191,11 @@
         this.validateOne(target);
     };
 
+    /**
+     * validate target.
+     *
+     * @param {jQueryElement} target
+     */
     builderProto.validateOne = function (target) {
         var val,
             type = target.data("validType"),
@@ -156,6 +207,12 @@
         this.emitStatus(target, status, type || "isInput");
     };
 
+    /**
+     * validate target and elements in same group.
+     *
+     * @param {jQueryElement} target
+     * @param {String} groupName
+     */
     builderProto.validateGroup = function (target, groupName) {
         var groups = this.groupTargets.filter("[data-valid-group=" + groupName + "]"),
             inputItems = validMethods.anyone(groups),
@@ -166,20 +223,33 @@
         this.emitStatus(groups, status, "groupempty");
 
         // validate only input items
-        $.each(inputItems, function (index, elem) {
-            that.validateOne(elem);
+        $.each(inputItems, function (index, item) {
+            that.validateOne(item);
         });
     };
 
+    /**
+     * emit to finish initialize.
+     */
     builderProto.emitInitialize = function () {
         this.validator.emit("init", this.allTargets);
     };
 
+    /**
+     * emit to status of target.
+     *
+     * @param {jQueryElement} target
+     * @param {String} status
+     * @param {String} validType
+     */
     builderProto.emitStatus = function (target, status, validType) {
         this.validator.emit(status, target, validType);
     };
 
-    builderProto.emitCurrentStatus = function () {
+    /**
+     * emit to overall status.
+     */
+    builderProto.emitOverallStatus = function () {
         var allTargets = this.allTargets,
             emptyNum = allTargets.filter(".valid-empty").length,
             errorNum  = allTargets.filter(".valid-error").length;
@@ -199,6 +269,12 @@
         this.validator.emit("allpass");
     };
 
+    /**
+     * change CSS class of target to matched status.
+     *
+     * @param {jQueryElement} target
+     * @param {String} status
+     */
     builderProto.setStatus = function (target, status) {
         target.removeClass("valid-pass");
         target.removeClass("valid-error");
@@ -207,6 +283,13 @@
         target.addClass("valid-" + status);
     };
 
+    /**
+     * get status of target.
+     *
+     * @param {jQueryElement} target
+     * @param {String} type method name of validMethods
+     * @returns {String} status of target
+     */
     builderProto.getStatus = function (target, type) {
         var isIgnore = target.hasClass("valid-ignore"),
             params = target.data("validParams");
@@ -221,9 +304,11 @@
 
         return validMethods[type](target, params) ? "pass" : "error";
     };
-    
+
     /**
-     * addEmitter
+     * add emit/on/off methods to obj
+     *
+     * @param {Object} obj
      */
     function addEmitter (obj) {
         var listeners = {};
@@ -253,6 +338,10 @@
         };
     }
 
-// set to global
-global["Validator"] = Validator;
+    // set
+    if (typeof require !== 'undefined' && typeof require.amd === 'object') {
+        define({Validator: Validator});
+    } else {
+        global.Validator = Validator;
+    }
 }(window, document, jQuery));
