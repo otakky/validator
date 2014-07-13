@@ -141,17 +141,9 @@
     builderProto.validateOne = function (target) {
         var val,
             type = target.data("validType"),
-            isIgnore = target.hasClass("valid-ignore"),
             status;
 
-
-        if (!validMethods.isInput(target)) {
-            status = isIgnore ? "pass" : "empty";
-        }
-
-        if (!status && type) {
-            status = validMethods[type](target) ? "pass" : "error";
-        }
+        status = this.getStatus(target, type);
 
         this.setStatus(target, status);
         this.emitStatus(target, status, type || "isInput");
@@ -208,6 +200,20 @@
         target.addClass("valid-" + status);
     };
 
+    builderProto.getStatus = function (target, type) {
+        var isIgnore = target.hasClass("valid-ignore");
+
+        if (!validMethods.isInput(target)) {
+            return isIgnore ? "pass" : "empty";
+        }
+
+        if (type) {
+            return validMethods[type](target) ? "pass" : "error";
+        }
+
+        return "pass";
+    };
+    
     /**
      * addEmitter
      */
