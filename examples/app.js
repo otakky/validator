@@ -63,5 +63,5 @@
         isAllEmpty = true;
     });
 
-    validator.build();
+    validator.run();
 }(window, document, jQuery));

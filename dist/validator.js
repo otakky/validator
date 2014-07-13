@@ -108,7 +108,7 @@
 
     validatorProto = Validator.prototype;
 
-    validatorProto.build = function () {
+    validatorProto.run = function () {
         new Builder(this);
     };
 
