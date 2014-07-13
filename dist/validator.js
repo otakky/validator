@@ -7,8 +7,7 @@
     var validatorProto,
         builderProto,
         validMethods = {},
-        emailMatcher = /^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/,
-        telMatcher = /^[0-9]{2,4}-[0-9]{2,4}-[0-9]{2,4}$/;
+        emailMatcher = /^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,4})$/
     ;
 
     /**
@@ -33,10 +32,15 @@
         return !isNaN(+value);
     };
 
-    validMethods.isTel = function (elem) {
+    validMethods.isRegExp = function (elem, pattern) {
         var value = elem.val();
 
-        return !!telMatcher.test(value);
+        if (!pattern) {
+            throw new Error("please use 'data-valid-paams' in an attribute of target element.");
+        }
+
+        return (new RegExp(pattern)).test(value);
+
     };
 
     validMethods.isEmail = function (elem) {
@@ -201,17 +205,18 @@
     };
 
     builderProto.getStatus = function (target, type) {
-        var isIgnore = target.hasClass("valid-ignore");
+        var isIgnore = target.hasClass("valid-ignore"),
+            params = target.data("validParams");
 
         if (!validMethods.isInput(target)) {
             return isIgnore ? "pass" : "empty";
         }
 
-        if (type) {
-            return validMethods[type](target) ? "pass" : "error";
+        if (!type) {
+            return "pass";
         }
 
-        return "pass";
+        return validMethods[type](target, params) ? "pass" : "error";
     };
     
     /**
