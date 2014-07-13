@@ -44,14 +44,26 @@
       <tr>
         <th> <span class="must"> * </span> Name </th>
         <td>
-          First Name: <input type="text">
-          Family Name: <input type="text">
+          First Name: <input type="text" name="first">
+          Family Name: <input type="text" name="family">
         </td>
       </tr>
       <tr>
         <th> <span class="must"> * </span> Age </th>
         <td>
-          <input type="text" size="10" data-valid-type="isNumber">
+          <input name="age" type="text" size="10" data-valid-type="isNumber">
+        </td>
+      </tr>
+      <tr>
+        <th> <span class="must"> * </span> business activity </th>
+        <td>
+          <select name="business">
+            <option value=""> please Choose </option>
+            <option value="1"> office worker </option>
+            <option value="2"> proprietor </option>
+            <option value="3"> student </option>
+            <option value="4"> none </option>
+          </select>
         </td>
       </tr>
       <tr>
@@ -59,12 +71,12 @@
         <td>
           <dl>
             <dt> e-mail </dt>
-            <dd> <input type="text" size="80" data-valid-type="isEmail" data-valid-group="contact"> </dd>
+            <dd> <input name="email" type="text" size="80" data-valid-type="isEmail" data-valid-group="contact"> </dd>
           </dl>
           <dl>
             <dt> tel </dt>
             <dd>
-              <input type="text" size="80" data-valid-type="isRegExp" data-valid-params="^[0-9]{2,4}-[0-9]{2,4}-[0-9]{2,4}$" data-valid-group="contact">
+              <input name="tel" type="text" size="80" data-valid-type="isRegExp" data-valid-params="^[0-9]{2,4}-[0-9]{2,4}-[0-9]{2,4}$" data-valid-group="contact">
             </dd>
           </dl>
         </td>
@@ -72,21 +84,21 @@
       <tr>
         <th>  FAX </th>
         <td>
-          <input class="valid-ignore" type="text" size="80" data-valid-type="isRegExp" data-valid-params="^[0-9]{2,4}-[0-9]{2,4}-[0-9]{2,4}$">
+          <input name="fax" class="valid-ignore" type="text" size="80" data-valid-type="isRegExp" data-valid-params="^[0-9]{2,4}-[0-9]{2,4}-[0-9]{2,4}$">
         </td>
       </tr>
       <tr>
         <th>  <span class="must"> * </span> status </th>
         <td class="wrap">
-          <label for="foo"> <input data-valid-group="status" type="checkbox" id="foo"> foo </label>
-          <label for="bar"> <input data-valid-group="status" type="checkbox" id="bar"> bar </label>
-          <label for="foobar"> <input data-valid-group="status" type="checkbox" id="foobar"> foobar </label>
+          <label for="foo"> <input name="foo" data-valid-group="status" type="checkbox" id="foo"> foo </label>
+          <label for="bar"> <input name="bar" data-valid-group="status" type="checkbox" id="bar"> bar </label>
+          <label for="foobar"> <input name="foobar" data-valid-group="status" type="checkbox" id="foobar"> foobar </label>
         </td>
       </tr>
     </tbody>
   </table>
 
-  <button type="submit" class="submitBtn">submit
+  <button type="submit" class="submitBtn">submit</button>
 </div>
 
 <script src="../bower_components/jquery/jquery.js"></script>
