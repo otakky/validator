@@ -52,7 +52,7 @@
         var value = elem.val();
 
         if (!pattern) {
-            throw new Error("please use 'data-valid-paams' in an attribute of target element.");
+            throw new Error("please use 'data-valid-params' in an attribute of target element.");
         }
 
         return (new RegExp(pattern)).test(value);
@@ -95,13 +95,23 @@
      * Validator
      *
      * @class
+     * @param Object params
+     * @config String root
+     * @config Object customMethods
+     * @config Number time
      */
-    function Validator(root) {
+    function Validator(params) {
+        var customMethods = params.customMethods || {},
+            root = params.root;
+
         this.root = $(root);
+        this.time = params.time || 300;
 
         if (!this.root.length) {
             throw new Error("selector: " + root + " is not found.");
         }
+
+        $.extend(validMethods, customMethods);
 
         addEmitter(this);
     };
@@ -123,8 +133,8 @@
         this.validator = validator;
         this.validator.invalidNum = 0;
 
-        this.allTargets = root.find(":input").not(":submit");
-        this.groupTargets = this.allTargets.filter("[data-valid-group]");
+        this.allInputFields = root.find(":input").not(":submit").not(":hidden");
+        this.groupTargets = this.allInputFields.filter("[data-valid-group]");
 
         this.checkAllTargets();
         this.observeAllTargets();
@@ -146,10 +156,11 @@
     };
 
     /**
-     * observe elements per 300ms for validation.
+     * observe elements for validation.
      */
     builderProto.observeAllTargets = function () {
-        this.intervalId = setInterval($.proxy(this, "checkAllTargets"), 300);
+        var time = this.validator.time;
+        this.intervalId = setInterval($.proxy(this, "checkAllTargets"), time);
     };
 
     /**
@@ -166,7 +177,7 @@
         var that = this;
 
 
-        this.allTargets.each(function (index, elem) {
+        this.allInputFields.each(function (index, elem) {
             elem = $(elem);
             that.validate(elem);
         });
@@ -232,7 +243,7 @@
      * emit to finish initialize.
      */
     builderProto.emitInitialize = function () {
-        this.validator.emit("init", this.allTargets);
+        this.validator.emit("init", this.allInputFields);
     };
 
     /**
@@ -250,13 +261,13 @@
      * emit to overall status.
      */
     builderProto.emitOverallStatus = function () {
-        var allTargets = this.allTargets,
-            emptyNum = allTargets.filter(".valid-empty").length,
-            errorNum  = allTargets.filter(".valid-error").length;
+        var allInputFields = this.allInputFields,
+            emptyNum = allInputFields.filter(".valid-empty").length,
+            errorNum  = allInputFields.filter(".valid-error").length;
 
         this.validator.invalidNum = emptyNum + errorNum;
 
-        if (emptyNum === allTargets.not(".valid-ignore").length) {
+        if (emptyNum === allInputFields.not(".valid-ignore").length) {
             this.validator.emit("allempty");
         } else {
             this.validator.emit("inputanyone");

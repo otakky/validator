@@ -1,5 +1,5 @@
 (function (global, doc, $) {
-    var validator = new Validator("#sample"),
+    var validator = new Validator({root: "#sample"}),
         isAllEmpty = true;
     ;
 
