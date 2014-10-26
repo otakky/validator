@@ -7,7 +7,7 @@
     var validatorProto,
         builderProto,
         validMethods = {},
-        emailMatcher = /^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,4})$/
+        emailMatcher = /^[_a-zA-Z0-9]+(\.[_a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*(\.[a-zA-Z]{2,4})$/
     ;
 
     /**
@@ -134,6 +134,8 @@
         this.validator.invalidNum = 0;
 
         this.allInputFields = root.find(":input").not(":submit").not(":hidden");
+        this.validator.allInputFields = this.allInputFields;
+
         this.groupTargets = this.allInputFields.filter("[data-valid-group]");
 
         this.checkAllTargets();
@@ -230,7 +232,7 @@
             status = inputItems.length ? "pass" : "empty",
             that = this;
 
-        this.setStatus(groups, status);
+        this.setStatus(groups.eq(0), status);
         this.emitStatus(groups, status, "groupempty");
 
         // validate only input items
@@ -265,7 +267,7 @@
             emptyNum = allInputFields.filter(".valid-empty").length,
             errorNum  = allInputFields.filter(".valid-error").length;
 
-        this.validator.invalidNum = emptyNum + errorNum;
+        this.validator.invalidNum = errorNum + emptyNum;
 
         if (emptyNum === allInputFields.not(".valid-ignore").length) {
             this.validator.emit("allempty");
