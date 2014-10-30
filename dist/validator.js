@@ -7,7 +7,7 @@
     var validatorProto,
         builderProto,
         validMethods = {},
-        emailMatcher = /^[_a-zA-Z0-9]+(\.[_a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*(\.[a-zA-Z]{2,4})$/
+        emailMatcher = /^[_a-zA-Z0-9\-]+(\.[_a-zA-Z0-9\-]+)*@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*(\.[a-zA-Z]{2,4})$/
     ;
 
     /**
@@ -118,7 +118,7 @@
 
     validatorProto = Validator.prototype;
 
-    validatorProto.run = function () {
+    validatorProto.build = function () {
         new Builder(this);
     };
 
@@ -128,21 +128,13 @@
      * @class
      */
     function Builder(validator) {
-        var inputsElem, root = validator.root;
+        var inputsElem;
 
         this.validator = validator;
-        this.validator.invalidNum = 0;
 
-        this.allInputFields = root.find(":input").not(":submit").not(":hidden");
-        this.validator.allInputFields = this.allInputFields;
-
-        this.groupTargets = this.allInputFields.filter("[data-valid-group]");
-
-        this.checkAllTargets();
-        this.observeAllTargets();
-        this.emitInitialize();
-
+        this.captureDOM();
         this.bindMethods();
+        this.emitInitialize();
     }
 
     // alias to Builder.prototype
@@ -155,6 +147,28 @@
         this.validator.allcheck = $.proxy(this, "checkAllTargets");
         this.validator.start = $.proxy(this, "observeAllTargets");
         this.validator.stop = $.proxy(this, "stopToObserve");
+
+        this.validator.getErrorFields = $.proxy(this, "getErrorFields");
+        this.validator.getEmptyFields = $.proxy(this, "getEmptyFields");
+        this.validator.getPassFields = $.proxy(this, "getPassFields");
+    };
+
+    builderProto.getErrorFields = function () {
+        return this.allInputFields.filter(".valid-error");
+    };
+
+    builderProto.getEmptyFields = function () {
+        return this.allInputFields.filter(".valid-empty");
+    };
+
+    builderProto.getPassFields = function () {
+        return this.allInputFields.filter(".valid-pass");
+    };
+
+    builderProto.captureDOM = function () {
+        this.allInputFields = this.validator.root.find(":input").not(":submit");
+        this.validator.allInputFields = this.allInputFields;
+        this.groupTargets = this.allInputFields.filter("[data-valid-group]");
     };
 
     /**
@@ -162,6 +176,10 @@
      */
     builderProto.observeAllTargets = function () {
         var time = this.validator.time;
+        if (this.intervalId) {
+            this.stopToObserve();
+        }
+
         this.intervalId = setInterval($.proxy(this, "checkAllTargets"), time);
     };
 
@@ -229,11 +247,12 @@
     builderProto.validateGroup = function (target, groupName) {
         var groups = this.groupTargets.filter("[data-valid-group=" + groupName + "]"),
             inputItems = validMethods.anyone(groups),
+            emptyItems = groups.not(inputItems),
             status = inputItems.length ? "pass" : "empty",
             that = this;
 
-        this.setStatus(groups.eq(0), status);
-        this.emitStatus(groups, status, "groupempty");
+        this.setStatus(emptyItems.eq(0), status);
+        this.emitStatus(emptyItems, status, "groupempty");
 
         // validate only input items
         $.each(inputItems, function (index, item) {
@@ -264,10 +283,8 @@
      */
     builderProto.emitOverallStatus = function () {
         var allInputFields = this.allInputFields,
-            emptyNum = allInputFields.filter(".valid-empty").length,
-            errorNum  = allInputFields.filter(".valid-error").length;
-
-        this.validator.invalidNum = errorNum + emptyNum;
+            emptyNum = this.getEmptyFields().length,
+            errorNum  = this.getErrorFields().length;
 
         if (emptyNum === allInputFields.not(".valid-ignore").length) {
             this.validator.emit("allempty");

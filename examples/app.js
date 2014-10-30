@@ -1,7 +1,9 @@
 (function (global, doc, $) {
-    var validator = new Validator({root: "#sample"}),
+    var validator = new Validator({root: "#sample", time: 500}),
         isAllEmpty = true;
     ;
+
+    validator.build();
 
     validator.on("init", function (target) {
         target.not(".valid-ignore").addClass("attention");
@@ -63,5 +65,5 @@
         isAllEmpty = true;
     });
 
-    validator.run();
+    validator.start();
 }(window, document, jQuery));
