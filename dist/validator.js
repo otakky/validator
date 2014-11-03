@@ -75,7 +75,7 @@
      * check to input at least one in elements of group.
      *
      * @param {jQueryElement} group targets of validation
-     * @returns {Boolean} valid / invalid
+     * @returns {Array} inputted Elements
      */
     validMethods.anyone = function (group) {
         var inputItem = [];
@@ -153,22 +153,26 @@
         this.validator.getPassFields = $.proxy(this, "getPassFields");
     };
 
-    builderProto.getErrorFields = function () {
-        return this.allInputFields.filter(".valid-error");
+    builderProto.getErrorNum = function () {
+        return this.allInputFields.filter(".valid-error").length;
     };
 
-    builderProto.getEmptyFields = function () {
-        return this.allInputFields.filter(".valid-empty");
+    builderProto.getEmptyNum = function () {
+        return this.allInputFields.filter(".valid-empty").length;
     };
 
-    builderProto.getPassFields = function () {
-        return this.allInputFields.filter(".valid-pass");
+    builderProto.getPassNum = function () {
+        return this.allInputFields.filter(".valid-pass").length;
     };
 
     builderProto.captureDOM = function () {
-        this.allInputFields = this.validator.root.find(":input").not(":submit");
-        this.validator.allInputFields = this.allInputFields;
-        this.groupTargets = this.allInputFields.filter("[data-valid-group]");
+        var allInputFields = this.validator.root.find(":input").not(":submit"),
+            groupTargets = allInputFields.filter("[data-valid-group]");
+
+        this.validator.allInputFields = this.allInputFields = allInputFields;
+
+        this.groupTargets = groupTargets;
+        this.singleTargets = allInputFields.not(groupTargets);
     };
 
     /**
@@ -194,32 +198,27 @@
      * validate all validation targets, and emit these status.
      */
     builderProto.checkAllTargets = function () {
-        var that = this;
 
-
-        this.allInputFields.each(function (index, elem) {
-            elem = $(elem);
-            that.validate(elem);
-        });
-
+        this.validateSingles(this.singleTargets);
+        this.validateGroup(this.getGroups());
 
         this.emitOverallStatus();
     };
 
-    /**
-     * validate target(s).
-     *
-     * @param {jQueryElement} target
-     */
-    builderProto.validate = function (target) {
-        var groupName = target.data("validGroup");
+    builderProto.getGroups = function () {
+        var groups = {};
 
-        if (groupName) {
-            this.validateGroup(target, groupName);
-            return;
-        }
+        this.groupTargets.each(function (index, target) {
+            var name;
 
-        this.validateOne(target);
+            target = $(target);
+            name = target.data("validGroup");
+
+            groups[name] = groups[name] || [];
+            groups[name].push(target);
+        });
+
+        return groups;
     };
 
     /**
@@ -227,36 +226,56 @@
      *
      * @param {jQueryElement} target
      */
-    builderProto.validateOne = function (target) {
-        var val,
-            type = target.data("validType"),
-            status;
+    builderProto.validateSingles = function (targets) {
+        var that = this;
 
-        status = this.getStatus(target, type);
+        targets.each(function (index, target) {
+            var val, type, status;
 
-        this.setStatus(target, status);
-        this.emitStatus(target, status, type || "isInput");
+            target = $(target);
+            type = target.data("validType");
+
+            status = that.getStatus(target, type);
+
+            that.setStatus(target, status);
+            that.emitStatus(target, status, type || "isInput");
+        });
     };
 
     /**
      * validate target and elements in same group.
      *
-     * @param {jQueryElement} target
-     * @param {String} groupName
+     * @param {Object} groups
      */
-    builderProto.validateGroup = function (target, groupName) {
-        var groups = this.groupTargets.filter("[data-valid-group=" + groupName + "]"),
-            inputItems = validMethods.anyone(groups),
-            emptyItems = groups.not(inputItems),
-            status = inputItems.length ? "pass" : "empty",
-            that = this;
+    builderProto.validateGroup = function (groups) {
+        var that = this;
+        $.each(groups, function (name) {
+            var group, inputItems, emptyItems;
 
-        this.setStatus(emptyItems.eq(0), status);
-        this.emitStatus(emptyItems, status, "groupempty");
+            group = that.groupTargets.filter("[data-valid-group=" + name + "]");
 
-        // validate only input items
-        $.each(inputItems, function (index, item) {
-            that.validateOne(item);
+            inputItems = validMethods.anyone(group);
+
+            if (!inputItems.length) {
+                that.removeStatus(group);
+                that.setStatus(group.eq(0), "empty");
+                that.emitStatus(group, "empty", "groupempty");
+                return;
+            }
+
+            // validate only input items
+            emptyItems = group;
+            $.each(inputItems, function (index, item) {
+                emptyItems = emptyItems.not(item);
+
+                that.validateSingles(item);
+            });
+
+            if (emptyItems.length) {
+                that.removeStatus(emptyItems);
+                that.setStatus(emptyItems.eq(0), "pass");
+                that.emitStatus(emptyItems, "pass", "grouppass");
+            }
         });
     };
 
@@ -283,8 +302,8 @@
      */
     builderProto.emitOverallStatus = function () {
         var allInputFields = this.allInputFields,
-            emptyNum = this.getEmptyFields().length,
-            errorNum  = this.getErrorFields().length;
+            emptyNum = this.getEmptyNum(),
+            errorNum  = this.getErrorNum();
 
         if (emptyNum === allInputFields.not(".valid-ignore").length) {
             this.validator.emit("allempty");
@@ -306,11 +325,15 @@
      * @param {String} status
      */
     builderProto.setStatus = function (target, status) {
+        this.removeStatus(target);
+
+        target.addClass("valid-" + status);
+    };
+
+    builderProto.removeStatus = function (target) {
         target.removeClass("valid-pass");
         target.removeClass("valid-error");
         target.removeClass("valid-empty");
-
-        target.addClass("valid-" + status);
     };
 
     /**
